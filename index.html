@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+	<section>
+		<div class="grid">
+			<div class="wrap__seq">
+				<div class="seq sequence">
+					<img src="seq/1 (1).jpg" alt="">
+				</div>
+				<div class="seq2 sequence">
+					<img src="seq_morf/1 (1).jpg" alt="">
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+	<!-- <script src="jquery.min.js"></script> -->
+	<script src="sequence.js"></script>
+	<!-- <script src="iOS9.js"></script> -->
+
+	<script>
+		new Sequence({
+			selector: '.seq',
+			startSeq: 1,
+			endSeq: 355,
+			mask: '1 (',
+			fps: 1,
+			format: ').jpg',
+			path: "seq/",
+		});
+
+		new Sequence({
+			selector: '.seq2',
+			startSeq: 1,
+			endSeq: 16,
+			mask: '1 (',
+			fps: 30,
+			format: ').jpg',
+			path: "seq_morf/",
+			point: '1 9 16',
+			centerPoint: 4,
+		});
+	</script>
+</body>
+
+</html>

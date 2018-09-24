@@ -145,9 +145,9 @@ function Sequence(options) {
 				} */
 			var incRight = 0;
 			attenuation = mouseSpeed.speedX;
-			loop();
+			//loop();
 
-			function loop() {
+			//function loop() {
 				timerRight = setInterval(function () {
 					swipeRight(sel, format, path, startSeq, endSeq);
 					if (incRight > afterSwipe) {
@@ -162,7 +162,7 @@ function Sequence(options) {
 					incRight++;
 					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
 				}, attenuation);
-			}
+			//}
 		} else
 		if ((mouseSpeed.speedX > 10) && (direction === 'left')) {
 			/* 	if (mouseSpeed.speedX > 100) {
@@ -170,9 +170,9 @@ function Sequence(options) {
 				} */
 			var incLeft = 0;
 			attenuation = mouseSpeed.speedX;
-			loop();
+			//loop();
 
-			function loop() {
+			//function loop() {
 				timerLeft = setInterval(function () {
 					swipeLeft(sel, format, path, startSeq, endSeq)
 					if (incLeft > afterSwipe) {
@@ -187,7 +187,7 @@ function Sequence(options) {
 					incLeft++;
 					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
 				}, attenuation);
-			}
+			//}
 		} else
 		if (mouseSpeed.speedX <= 10) {
 			clearInterval(timerLeft);
@@ -195,8 +195,8 @@ function Sequence(options) {
 			for (var n = 0; n < selCommon.length; n++) {
 				selCommon[n].addEventListener('touchstart', setTouchstart, false);
 			}
-			for (var k = 0; k < selCommon.length; k++) {
-				selCommon[k].addEventListener('touchend', setTouchend, false);
+			for (var c = 0; c < selCommon.length; c++) {
+				selCommon[c].addEventListener('touchend', setTouchend, false);
 			}
 		}
 	}
@@ -208,6 +208,8 @@ function Sequence(options) {
 		event.preventDefault();
 		event.stopPropagation();
 		startPoint.x = event.changedTouches[0].pageX;
+		clearInterval(timerLeft);
+		clearInterval(timerRight);
 		//alert('setTouchstart');
 	}
 

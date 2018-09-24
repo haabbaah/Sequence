@@ -1,6 +1,7 @@
 "use strict";
 
 function Sequence(options) {
+	this.swipeField = document.querySelectorAll(options.swipeField);
 	this.selector = document.querySelectorAll(options.selector);
 	this.elementSeq = document.querySelectorAll(options.selector + ' img');
 	this.startSeq = options.startSeq;
@@ -18,6 +19,7 @@ function Sequence(options) {
 	var startPoint = {};
 	var nowPoint;
 
+	var swipeField = this.swipeField; //ссылка на поле для свайпа
 	var selCommon = this.selector; //ссылка на контейнер
 	var sel = this.elementSeq; //ссылка на изображение
 	var fps = this.fps; //скорость смены изображений
@@ -37,7 +39,7 @@ function Sequence(options) {
 	var timerLeft = 0;
 	var timerRight = 0;
 
-	var mouseSpeed = {
+	var mouseSpeed = { //скорость свайпа
 		x: 0,
 		speedX: 0,
 		oldX: 0,
@@ -45,10 +47,12 @@ function Sequence(options) {
 			this.speedX = Math.abs(this.x - this.oldX);
 			this.oldX = this.x;
 		}
-	}
+	};
+
 
 
 	function swipeRight(sel, format, path, startSeq, endSeq) {
+		start++;
 		if (start >= endSeq) {
 			if (loop) {
 				start = startSeq;
@@ -56,7 +60,7 @@ function Sequence(options) {
 				start = endSeq;
 			}
 		}
-		start++;
+
 		for (var i = 0; i < sel.length; i++) {
 			sel[i].setAttribute('src', path + start + format);
 		}
@@ -64,7 +68,7 @@ function Sequence(options) {
 	}
 
 	function swipeLeft(sel, format, path, startSeq, endSeq) {
-
+		start--;
 		if (start <= startSeq) {
 			if (loop) {
 				start = endSeq;
@@ -72,14 +76,13 @@ function Sequence(options) {
 				start = startSeq;
 			}
 		}
-		start--;
 		for (var i = 0; i < sel.length; i++) {
 			sel[i].setAttribute('src', path + start + format);
 		}
 		//console.log('L' + otk.x);
 	}
 
-	function binding() {
+	function binding() { //привязка к точкам останова
 		for (increment; increment < point.length; increment++) { //проверяем каждую точку привязки
 
 			if ((start >= point[increment]) && (start <= (+point[increment] + centerPoint)) && (direction === 'right')) { //если фото больше точки привязки, и меньше точки середины и свайп в право, то привязку делаем к данной точке привязки
@@ -98,6 +101,9 @@ function Sequence(options) {
 				break;
 			} else
 			if ((start <= point[increment]) && (start >= point[increment] - centerPoint) && (direction === 'left')) { //если фото меньше точки привязки, и больше точки середины и свайп в лево, то привязку делаем к данной точке привязки
+				if (startSeq < increment) {
+					increment = startSeq;
+				}
 				for (var i = 0; i < sel.length; i++) {
 					sel[i].setAttribute('src', path + point[increment] + format);
 				}
@@ -106,6 +112,9 @@ function Sequence(options) {
 			} else
 			if ((start <= point[increment]) && (start <= point[increment] - centerPoint) && (direction === 'left')) { //если фото меньше точки привязки, и меньше точки середины и свайп в лево, то привязку делаем к следующей точке привязки
 				increment--;
+				if (startSeq < increment) {
+					increment = startSeq;
+				}
 				for (var i = 0; i < sel.length; i++) {
 					sel[i].setAttribute('src', path + point[increment] + format);
 				}
@@ -115,23 +124,33 @@ function Sequence(options) {
 		}
 	}
 
-	function doAttenuation() {
+
+
+	function doAttenuation() { //доводка, позволяет крутить после отпускания пальца
 		for (var i = 0; i < selCommon.length; i++) {
 			selCommon[i].removeEventListener('touchstart', setTouchstart, false);
 		}
+		for (var k = 0; k < selCommon.length; k++) {
+			selCommon[k].removeEventListener('touchend', setTouchend, false);
+		}
 		clearInterval(timerLeft);
+		clearInterval(timerRight);
+
+		var afterSwipe = ((endSeq - startSeq) * 90) / 100;
+		var attenuation;
+
 		if ((mouseSpeed.speedX > 10) && (direction === 'right')) {
-			if (mouseSpeed.speedX > 100) {
-				mouseSpeed.speedX = 90;
-			}
+			/* 	if (mouseSpeed.speedX > 100) {
+					mouseSpeed.speedX = 60;
+				} */
 			var incRight = 0;
-			var attenuation = mouseSpeed.speedX;
+			attenuation = mouseSpeed.speedX;
 			loop();
 
 			function loop() {
 				timerRight = setInterval(function () {
 					swipeRight(sel, format, path, startSeq, endSeq);
-					if (incRight > 10) {
+					if (incRight > afterSwipe) {
 						clearInterval(timerRight);
 						for (var n = 0; n < selCommon.length; n++) {
 							selCommon[n].addEventListener('touchstart', setTouchstart, false);
@@ -141,23 +160,22 @@ function Sequence(options) {
 						}
 					}
 					incRight++;
-					attenuation = Math.sqrt(attenuation);
+					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
 				}, attenuation);
-
 			}
 		} else
 		if ((mouseSpeed.speedX > 10) && (direction === 'left')) {
-			if (mouseSpeed.speedX > 100) {
-				mouseSpeed.speedX = 90;
-			}
+			/* 	if (mouseSpeed.speedX > 100) {
+					mouseSpeed.speedX = 60;
+				} */
 			var incLeft = 0;
-			var attenuation = mouseSpeed.speedX;
+			attenuation = mouseSpeed.speedX;
 			loop();
 
 			function loop() {
 				timerLeft = setInterval(function () {
 					swipeLeft(sel, format, path, startSeq, endSeq)
-					if (incLeft > 10) {
+					if (incLeft > afterSwipe) {
 						clearInterval(timerLeft);
 						for (var n = 0; n < selCommon.length; n++) {
 							selCommon[n].addEventListener('touchstart', setTouchstart, false);
@@ -167,12 +185,13 @@ function Sequence(options) {
 						}
 					}
 					incLeft++;
-					attenuation = Math.sqrt(attenuation);
+					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
 				}, attenuation);
-
 			}
 		} else
 		if (mouseSpeed.speedX <= 10) {
+			clearInterval(timerLeft);
+			clearInterval(timerRight);
 			for (var n = 0; n < selCommon.length; n++) {
 				selCommon[n].addEventListener('touchstart', setTouchstart, false);
 			}
@@ -182,16 +201,14 @@ function Sequence(options) {
 		}
 	}
 
+
+
+
 	function setTouchstart(event) {
 		event.preventDefault();
 		event.stopPropagation();
 		startPoint.x = event.changedTouches[0].pageX;
 	}
-
-	for (var n = 0; n < selCommon.length; n++) {
-		selCommon[n].addEventListener('touchstart', setTouchstart, false);
-	}
-
 
 	/* 	for (var n = 0; n < selCommon.length; n++) {
 			selCommon[n].addEventListener('touchstart', function(event) {
@@ -201,31 +218,29 @@ function Sequence(options) {
 			}, false);
 		} */
 
-	for (var i = 0; i < selCommon.length; i++) {
-		selCommon[i].addEventListener('touchmove', function (event) {
-			event.preventDefault();
-			event.stopPropagation();
-			var otk = {};
-			nowPoint = event.changedTouches[0];
-			otk.x = nowPoint.pageX - startPoint.x;
-			mouseSpeed.x = event.changedTouches[0].pageX;
-			mouseSpeed.y = event.changedTouches[0].pageY;
-			mouseSpeed.update();
-			if (Math.abs(otk.x) > fps) { //скорость кадров
-				if (otk.x < 0) {
-					direction = 'left';
-					swipeLeft(sel, format, path, startSeq, endSeq); //если свайп влево, то вызываем эту функцию
-				}
-				if (otk.x > 0) {
-					direction = 'right';
-					swipeRight(sel, format, path, startSeq, endSeq); //если свайп вправо, то вызываем эту функцию
-				}
-				startPoint = {
-					x: nowPoint.pageX
-				};
-
+	function setTouchmove(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		var otk = {};
+		nowPoint = event.changedTouches[0];
+		otk.x = nowPoint.pageX - startPoint.x;
+		mouseSpeed.x = event.changedTouches[0].pageX;
+		mouseSpeed.y = event.changedTouches[0].pageY;
+		mouseSpeed.update();
+		if (Math.abs(otk.x) > fps) { //скорость кадров
+			if (otk.x < 0) {
+				direction = 'left';
+				swipeLeft(sel, format, path, startSeq, endSeq); //если свайп влево, то вызываем эту функцию
 			}
-		}, false);
+			if (otk.x > 0) {
+				direction = 'right';
+				swipeRight(sel, format, path, startSeq, endSeq); //если свайп вправо, то вызываем эту функцию
+			}
+			startPoint = {
+				x: nowPoint.pageX
+			};
+
+		}
 	}
 
 	function setTouchend(event) {
@@ -236,8 +251,26 @@ function Sequence(options) {
 		}
 	}
 
+
+	for (var n = 0; n < selCommon.length; n++) {
+		selCommon[n].addEventListener('touchstart', setTouchstart, false);
+	}
+	for (var r = 0; r < swipeField.length; r++) {
+		swipeField[r].addEventListener('touchstart', setTouchstart, false);
+	}
+
+	for (var i = 0; i < selCommon.length; i++) {
+		selCommon[i].addEventListener('touchmove', setTouchmove, false);
+	}
+	for (var d = 0; d < swipeField.length; d++) {
+		swipeField[d].addEventListener('touchmove', setTouchmove, false);
+	}
+
 	for (var k = 0; k < selCommon.length; k++) {
 		selCommon[k].addEventListener('touchend', setTouchend, false);
+	}
+	for (var a = 0; a < swipeField.length; a++) {
+		swipeField[a].addEventListener('touchend', setTouchend, false);
 	}
 
 }

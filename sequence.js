@@ -1,4 +1,4 @@
-"use strict";
+/* "use strict"; */
 
 function Sequence(options) {
 	this.swipeField = document.querySelectorAll(options.swipeField);
@@ -208,6 +208,7 @@ function Sequence(options) {
 		event.preventDefault();
 		event.stopPropagation();
 		startPoint.x = event.changedTouches[0].pageX;
+		//alert('setTouchstart');
 	}
 
 	/* 	for (var n = 0; n < selCommon.length; n++) {

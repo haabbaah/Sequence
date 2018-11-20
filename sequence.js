@@ -15,6 +15,7 @@ function Sequence(options) {
 	this.point = options.point;
 	this.centerPoint = options.centerPoint;
 	this.loop = options.loop;
+	this.reverse = options.reverse;
 
 	var startPoint = {};
 	var nowPoint;
@@ -35,6 +36,7 @@ function Sequence(options) {
 	var direction = ''; //определяет направление свайпа
 	var increment = 0; //переменная для привязки
 	var loop = this.loop; //бесконечная прокрутка
+	var reverse = this.reverse || false; //прокрутка в обратную сторону
 
 	var timerLeft = 0;
 	var timerRight = 0;
@@ -79,7 +81,6 @@ function Sequence(options) {
 		for (var i = 0; i < sel.length; i++) {
 			sel[i].setAttribute('src', path + start + format);
 		}
-		//console.log('L' + otk.x);
 	}
 
 	function binding() { //привязка к точкам останова
@@ -140,54 +141,42 @@ function Sequence(options) {
 		var attenuation;
 
 		if ((mouseSpeed.speedX > 10) && (direction === 'right')) {
-			/* 	if (mouseSpeed.speedX > 100) {
-					mouseSpeed.speedX = 60;
-				} */
 			var incRight = 0;
 			attenuation = mouseSpeed.speedX;
-			//loop();
 
-			//function loop() {
-				timerRight = setInterval(function () {
-					swipeRight(sel, format, path, startSeq, endSeq);
-					if (incRight > afterSwipe) {
-						clearInterval(timerRight);
-						for (var n = 0; n < selCommon.length; n++) {
-							selCommon[n].addEventListener('touchstart', setTouchstart, false);
-						}
-						for (var k = 0; k < selCommon.length; k++) {
-							selCommon[k].addEventListener('touchend', setTouchend, false);
-						}
+			timerRight = setInterval(function () {
+				swipeRight(sel, format, path, startSeq, endSeq);
+				if (incRight > afterSwipe) {
+					clearInterval(timerRight);
+					for (var n = 0; n < selCommon.length; n++) {
+						selCommon[n].addEventListener('touchstart', setTouchstart, false);
 					}
-					incRight++;
-					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
-				}, attenuation);
-			//}
+					for (var k = 0; k < selCommon.length; k++) {
+						selCommon[k].addEventListener('touchend', setTouchend, false);
+					}
+				}
+				incRight++;
+				attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
+			}, attenuation);
 		} else
 		if ((mouseSpeed.speedX > 10) && (direction === 'left')) {
-			/* 	if (mouseSpeed.speedX > 100) {
-					mouseSpeed.speedX = 60;
-				} */
 			var incLeft = 0;
 			attenuation = mouseSpeed.speedX;
-			//loop();
 
-			//function loop() {
-				timerLeft = setInterval(function () {
-					swipeLeft(sel, format, path, startSeq, endSeq)
-					if (incLeft > afterSwipe) {
-						clearInterval(timerLeft);
-						for (var n = 0; n < selCommon.length; n++) {
-							selCommon[n].addEventListener('touchstart', setTouchstart, false);
-						}
-						for (var k = 0; k < selCommon.length; k++) {
-							selCommon[k].addEventListener('touchend', setTouchend, false);
-						}
+			timerLeft = setInterval(function () {
+				swipeLeft(sel, format, path, startSeq, endSeq)
+				if (incLeft > afterSwipe) {
+					clearInterval(timerLeft);
+					for (var n = 0; n < selCommon.length; n++) {
+						selCommon[n].addEventListener('touchstart', setTouchstart, false);
 					}
-					incLeft++;
-					attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
-				}, attenuation);
-			//}
+					for (var k = 0; k < selCommon.length; k++) {
+						selCommon[k].addEventListener('touchend', setTouchend, false);
+					}
+				}
+				incLeft++;
+				attenuation = Math.atan(-attenuation + 6) + (Math.PI / 2); //функция арккотангенс
+			}, attenuation);
 		} else
 		if (mouseSpeed.speedX <= 10) {
 			clearInterval(timerLeft);
@@ -210,16 +199,8 @@ function Sequence(options) {
 		startPoint.x = event.changedTouches[0].pageX;
 		clearInterval(timerLeft);
 		clearInterval(timerRight);
-		//alert('setTouchstart');
 	}
 
-	/* 	for (var n = 0; n < selCommon.length; n++) {
-			selCommon[n].addEventListener('touchstart', function(event) {
-				event.preventDefault();
-				event.stopPropagation();
-				startPoint.x = event.changedTouches[0].pageX;
-			}, false);
-		} */
 
 	function setTouchmove(event) {
 		event.preventDefault();
@@ -231,13 +212,21 @@ function Sequence(options) {
 		mouseSpeed.y = event.changedTouches[0].pageY;
 		mouseSpeed.update();
 		if (Math.abs(otk.x) > fps) { //скорость кадров
-			if (otk.x < 0) {
+			if (otk.x < 0 && !reverse) {
 				direction = 'left';
 				swipeLeft(sel, format, path, startSeq, endSeq); //если свайп влево, то вызываем эту функцию
 			}
-			if (otk.x > 0) {
+			if (otk.x > 0 && !reverse) {
 				direction = 'right';
 				swipeRight(sel, format, path, startSeq, endSeq); //если свайп вправо, то вызываем эту функцию
+			}
+			if (otk.x < 0 && reverse) { //меняем направление секвенции
+				direction = 'right';
+				swipeRight(sel, format, path, startSeq, endSeq); 
+			}
+			if (otk.x > 0 && reverse) { //меняем направление секвенции
+				direction = 'left';
+				swipeLeft(sel, format, path, startSeq, endSeq); 
 			}
 			startPoint = {
 				x: nowPoint.pageX

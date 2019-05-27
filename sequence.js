@@ -33,6 +33,9 @@ class Sequence {
 		this.nowPoint = 0;
 
 		this.timer = 0;
+		this.inertiaMoveTimer = 1;
+		this.inertiaMoveTimeOut = 0;
+
 
 
 		this.selector.addEventListener('touchstart', this.setTouchstart.bind(this), false);
@@ -93,19 +96,56 @@ class Sequence {
 
 
 	inertiaMove() { //доводка, позволяет крутить после отпускания пальца
-		let increment = 10;
-		this.timer = setInterval(() => {
+		clearTimeout(this.inertiaMoveTimeOut);
+		let impulse = 0.5 * this.mouseSpeed.speedX;
+		this.inertiaMoveTimer = impulse;
+
+		let maxTime = 50;
+
+		let inertia = () => {
 			if (this.direction === 'L') {
 				this.changeImgToLeft();
 			} else {
 				this.changeImgToRight();
 			}
-			increment++;
-			if (increment >= 40) {
-				clearInterval(this.timer);
-				this.mouseSpeed.speedX = 0;
+			if (this.inertiaMoveTimer < maxTime) {
+				this.inertiaMoveTimer += 3;
+				this.inertiaMoveTimeOut = setTimeout(inertia, this.inertiaMoveTimer);
+				if (this.inertiaMoveTimer >= maxTime) {
+					this.inertiaMoveTimer = 0;
+					this.mouseSpeed.speedX = 0;
+					clearTimeout(this.inertiaMoveTimeOut);
+				}
 			}
-		}, increment);
+		};
+
+		this.inertiaMoveTimeOut = setTimeout(inertia, this.inertiaMoveTimer);
+
+		/* 		if (this.direction === 'L') {
+					this.changeImgToLeft();
+				} else {
+					this.changeImgToRight();
+				}
+				console.log('ee');
+				console.log(this.inertiaMoveTimer);
+				if (this.inertiaMoveTimer < 60) {
+					this.inertiaMoveTimer += 1;
+					setTimeout(this.inertiaMove(), this.inertiaMoveTimer);
+				} */
+
+		/* 	let increment = 10;
+			this.timer = setInterval(() => {
+				if (this.direction === 'L') {
+					this.changeImgToLeft();
+				} else {
+					this.changeImgToRight();
+				}
+				increment++;
+				if (increment >= 40) {
+					clearInterval(this.timer);
+					this.mouseSpeed.speedX = 0;
+				}
+			}, increment); */
 	}
 
 
@@ -115,9 +155,9 @@ class Sequence {
 			closestRight = Math.max(...this.points);
 		}
 		let closestLeft = Math.max(...this.points.filter(v => v <= this.counter));
-			if (!isFinite(closestLeft)) {
-				closestLeft = Math.min(...this.points);
-			}
+		if (!isFinite(closestLeft)) {
+			closestLeft = Math.min(...this.points);
+		}
 		let center = closestRight - Math.round((closestRight - closestLeft) / 2);
 		if (this.counter < center) {
 			this.counter = closestLeft;
@@ -149,7 +189,7 @@ class Sequence {
 		if (Math.abs(xAbs) > this.fps) {
 
 			if (this.startPointX > this.nowPoint) {
-				console.log('L');
+				//console.log('L');
 				if (this.reverse) {
 					this.changeImgToRight();
 				} else {
@@ -159,7 +199,7 @@ class Sequence {
 				/*СВАЙП ВЛЕВО*/
 			}
 			if (this.startPointX < this.nowPoint) {
-				console.log('R');
+				//console.log('R');
 				if (this.reverse) {
 					this.changeImgToLeft();
 				} else {
@@ -177,6 +217,7 @@ class Sequence {
 	setTouchend(event) {
 		if (this.mouseSpeed.speedX > 10) {
 			this.inertiaMove();
+			//setTimeout(this.inertiaMove(), this.inertiaMoveTimer);
 		}
 		if (this.points) {
 			this.binding();
